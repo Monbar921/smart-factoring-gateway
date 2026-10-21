@@ -7,6 +7,15 @@ server:
 spring:
   application:
     name: smart-factoring-gateway
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # iss токена: публичный адрес realm Keycloak, тот же, что видит браузер (например http://<vds>:8180/realms/smart-factoring-test)
+          issuer-uri: ${KEYCLOAK_ISSUER_URI}
+          # ключи подписи - напрямую из Keycloak по внутренней сети (http://keycloak:8080/realms/<realm>/protocol/openid-connect/certs);
+          # при заданном jwk-set-uri issuer-uri только проверяется в токене, discovery по нему не запрашивается
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI}
   cloud:
     gateway:
       server:
@@ -18,6 +27,9 @@ spring:
 smart-factoring:
   gateway:
     backend-uri: ${BACKEND_URI}
+    swagger:
+      authorization-url: ${KEYCLOAK_ISSUER_URI}/protocol/openid-connect/auth
+      token-url: ${KEYCLOAK_ISSUER_URI}/protocol/openid-connect/token
 
 management:
   endpoints:
@@ -37,3 +49,10 @@ springdoc:
       - name: gateway
         url: /v3/api-docs
     urls-primary-name: backend
+    # токен из Authorize не теряется при перезагрузке страницы
+    persist-authorization: true
+    oauth:
+      # публичный клиент realm Keycloak, вход через Authorization Code + PKCE
+      client-id: ${KEYCLOAK_SWAGGER_CLIENT_ID:smart-factoring-swagger}
+      use-pkce-with-authorization-code-grant: true
+      scopes: openid

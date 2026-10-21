@@ -13,6 +13,7 @@
 
     <modules>
         <module>routing-service</module>
+        <module>authorization-service</module>
     </modules>
 
 </project>

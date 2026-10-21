@@ -16,6 +16,11 @@
             <artifactId>routing-service</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>ru.smart.factoring.gateway</groupId>
+            <artifactId>authorization-service</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

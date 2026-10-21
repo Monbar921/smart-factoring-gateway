@@ -14,7 +14,7 @@ public class RoutingConfiguration {
     private static final String BACKEND_API_DOCS_ROUTE_ID = "smart-factoring-backend-api-docs";
 
     /**
-     * Внешний /api/** проксируется в /internal/rest/** backend.
+     * Внешний /api/backend/** проксируется в /internal/rest/** backend.
      * <p>
      * /backend/v3/api-docs - спецификация backend для Swagger UI gateway, переписанная под эти же пути.
      */
@@ -22,7 +22,7 @@ public class RoutingConfiguration {
     public RouteLocator routeLocator(final RouteLocatorBuilder builder,
                                      final RoutingProperties properties,
                                      final JsonMapper jsonMapper) {
-        final var apiDocsTransformer = new BackendApiDocsTransformer(jsonMapper);
+        final var apiDocsTransformer = new BackendApiDocsTransformer(jsonMapper, properties.swagger());
         return builder.routes()
                 .route(BACKEND_ROUTE_ID, route -> route
                         .path("/api/backend/**")
