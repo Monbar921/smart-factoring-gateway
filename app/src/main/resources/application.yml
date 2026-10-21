@@ -1,7 +1,8 @@
 # Настройки, общие для всех стендов. Значения ${...} Spring берёт из переменных окружения контейнера
 # (environment в docker-compose.yml в smart-factoring-deploy), после ':' - значение по умолчанию для локального запуска
 server:
-  port: 8090
+  # на стенде - GATEWAY_PORT из smart-factoring-deploy, compose передаёт его как SERVER_PORT
+  port: ${SERVER_PORT}
 
 spring:
   application:
