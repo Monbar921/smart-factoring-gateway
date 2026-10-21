@@ -25,8 +25,8 @@ public class RoutingConfiguration {
         final var apiDocsTransformer = new BackendApiDocsTransformer(jsonMapper);
         return builder.routes()
                 .route(BACKEND_ROUTE_ID, route -> route
-                        .path("/api/**")
-                        .filters(filters -> filters.rewritePath("/api/(?<segment>.*)", "/internal/rest/${segment}"))
+                        .path("/api/backend/**")
+                        .filters(filters -> filters.rewritePath("/api/backend/(?<segment>.*)", "/internal/rest/${segment}"))
                         .uri(properties.backendUri()))
                 .route(BACKEND_API_DOCS_ROUTE_ID, route -> route
                         .path("/backend/v3/api-docs")
