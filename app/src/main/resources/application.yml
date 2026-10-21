@@ -24,3 +24,16 @@ management:
     web:
       exposure:
         include: health,info,metrics
+
+# Swagger UI: /swagger-ui.html, спецификация выбирается в выпадающем списке справа сверху
+springdoc:
+  # у gateway своих контроллеров нет, в его спецификации - эндпоинты actuator
+  show-actuator: true
+  swagger-ui:
+    urls:
+      # спецификация backend, переписанная под внешние пути gateway, см. RoutingConfiguration
+      - name: backend
+        url: /backend/v3/api-docs
+      - name: gateway
+        url: /v3/api-docs
+    urls-primary-name: backend
