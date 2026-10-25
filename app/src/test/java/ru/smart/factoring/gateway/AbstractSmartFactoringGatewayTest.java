@@ -108,6 +108,13 @@ public abstract class AbstractSmartFactoringGatewayTest {
         return sign(SIGNING_KEY, claims(ISSUER, Instant.now().plusSeconds(300)));
     }
 
+    /**
+     * Access token с заданными ролями realm (realm_access.roles).
+     */
+    static String tokenWithRoles(final String... roles) {
+        return sign(SIGNING_KEY, claims(ISSUER, Instant.now().plusSeconds(300), List.of(roles)));
+    }
+
     static String expiredToken() {
         return sign(SIGNING_KEY, claims(ISSUER, Instant.now().minusSeconds(300)));
     }
@@ -121,13 +128,17 @@ public abstract class AbstractSmartFactoringGatewayTest {
     }
 
     private static JWTClaimsSet claims(final String issuer, final Instant expiresAt) {
+        return claims(issuer, expiresAt, List.of("user"));
+    }
+
+    private static JWTClaimsSet claims(final String issuer, final Instant expiresAt, final List<String> roles) {
         return new JWTClaimsSet.Builder()
                 .issuer(issuer)
                 .subject(UUID.randomUUID().toString())
                 .issueTime(Date.from(expiresAt.minusSeconds(600)))
                 .expirationTime(Date.from(expiresAt))
                 .claim("preferred_username", "tester")
-                .claim("realm_access", Map.of("roles", List.of("user")))
+                .claim("realm_access", Map.of("roles", roles))
                 .build();
     }
 
