@@ -16,7 +16,7 @@ import org.springframework.security.web.server.context.NoOpServerSecurityContext
  * <p>
  * Права - по ролям realm Keycloak (claim realm_access.roles):
  * <ul>
- *     <li>{@value #OPERATOR} - экран процесса: импорт демо-данных и запуск прогона;</li>
+ *     <li>{@value #OPERATOR} - экран процесса: импорт данных ручной загрузки и запуск прогона;</li>
  *     <li>{@value #MANAGER} - эмулятор CRM: очередь, карточка клиента, решения по предложениям.</li>
  * </ul>
  * Смотреть прогоны и параметры могут обе роли. Остальные пути backend - любому вошедшему пользователю.
@@ -43,7 +43,7 @@ public class SecurityConfiguration {
 
     private static final String BACKEND = "/api/backend";
     private static final String[] RUN_VIEW_PATHS = {BACKEND + "/runs", BACKEND + "/runs/**", BACKEND + "/parameters"};
-    private static final String[] OPERATOR_PATHS = {BACKEND + "/runs", BACKEND + "/runs/**", BACKEND + "/demo/**"};
+    private static final String[] OPERATOR_PATHS = {BACKEND + "/runs", BACKEND + "/runs/**", BACKEND + "/manual-upload/**"};
     private static final String[] MANAGER_PATHS = {BACKEND + "/managers/**", BACKEND + "/clients/**", BACKEND + "/offers/**"};
 
     @Bean

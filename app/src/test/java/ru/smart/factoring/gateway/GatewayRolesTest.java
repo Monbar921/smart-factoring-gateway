@@ -14,10 +14,10 @@ class GatewayRolesTest extends AbstractSmartFactoringGatewayTest {
     private static final String MANAGER = "manager";
 
     @Test
-    void operatorStartsRunsAndImportsDemoData() {
+    void operatorStartsRunsAndUploadsData() {
         assertAllowed(HttpMethod.POST, "/api/backend/runs", OPERATOR);
-        assertAllowed(HttpMethod.POST, "/api/backend/demo/import", OPERATOR);
-        assertAllowed(HttpMethod.POST, "/api/backend/demo/import/efrsb", OPERATOR);
+        assertAllowed(HttpMethod.POST, "/api/backend/manual-upload", OPERATOR);
+        assertAllowed(HttpMethod.POST, "/api/backend/manual-upload/efrsb", OPERATOR);
         assertAllowed(HttpMethod.GET, "/api/backend/runs/7/upds?category=5", OPERATOR);
         assertAllowed(HttpMethod.GET, "/api/backend/parameters", OPERATOR);
     }
@@ -43,7 +43,7 @@ class GatewayRolesTest extends AbstractSmartFactoringGatewayTest {
         assertAllowed(HttpMethod.GET, "/api/backend/runs", MANAGER);
         assertAllowed(HttpMethod.GET, "/api/backend/runs/7/funnel", MANAGER);
         assertForbidden(HttpMethod.POST, "/api/backend/runs", MANAGER);
-        assertForbidden(HttpMethod.POST, "/api/backend/demo/import", MANAGER);
+        assertForbidden(HttpMethod.POST, "/api/backend/manual-upload", MANAGER);
     }
 
     @Test

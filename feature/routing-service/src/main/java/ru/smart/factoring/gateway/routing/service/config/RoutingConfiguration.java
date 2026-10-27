@@ -13,8 +13,8 @@ import tools.jackson.databind.json.JsonMapper;
 public class RoutingConfiguration {
     private static final String BACKEND_ROUTE_ID = "smart-factoring-backend";
     private static final String BACKEND_API_DOCS_ROUTE_ID = "smart-factoring-backend-api-docs";
-    private static final String BACKEND_DEMO_ROUTE_ID = "smart-factoring-backend-demo";
-    private static final long DEMO_RESPONSE_TIMEOUT_MS = 600_000;
+    private static final String BACKEND_MANUAL_UPLOAD_ROUTE_ID = "smart-factoring-backend-manual-upload";
+    private static final long MANUAL_UPLOAD_RESPONSE_TIMEOUT_MS = 600_000;
 
     /**
      * Внешний /api/backend/** проксируется в /internal/rest/** backend.
@@ -27,12 +27,12 @@ public class RoutingConfiguration {
                                      final JsonMapper jsonMapper) {
         final var apiDocsTransformer = new BackendApiDocsTransformer(jsonMapper, properties.swagger());
         return builder.routes()
-                // импорт демо-данных дольше общего response-timeout: набор партий ML-команды - около минуты и больше
-                .route(BACKEND_DEMO_ROUTE_ID, route -> route
+                // импорт данных ручной загрузки дольше общего response-timeout: набор партий ML-команды - около минуты и больше
+                .route(BACKEND_MANUAL_UPLOAD_ROUTE_ID, route -> route
                         .order(-1)
-                        .path("/api/backend/demo/**")
+                        .path("/api/backend/manual-upload/**")
                         .filters(filters -> filters.rewritePath("/api/backend/(?<segment>.*)", "/internal/rest/${segment}"))
-                        .metadata(RouteMetadataUtils.RESPONSE_TIMEOUT_ATTR, DEMO_RESPONSE_TIMEOUT_MS)
+                        .metadata(RouteMetadataUtils.RESPONSE_TIMEOUT_ATTR, MANUAL_UPLOAD_RESPONSE_TIMEOUT_MS)
                         .uri(properties.backendUri()))
                 .route(BACKEND_ROUTE_ID, route -> route
                         .path("/api/backend/**")
