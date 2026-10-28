@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
+import ru.smart.factoring.gateway.authorization.service.guest.GuestSessionController;
 
 /**
  * Gateway - единственная точка проверки пользователя: каждый запрос несёт access token Keycloak
@@ -33,10 +34,11 @@ public class SecurityConfiguration {
     public static final String MANAGER = "manager";
 
     /**
-     * Без токена: healthcheck docker, Swagger UI и спецификации (кнопка Authorize получает токен в самом Swagger UI).
+     * Без токена: healthcheck docker, Swagger UI и спецификации (кнопка Authorize получает токен в самом Swagger UI),
+     * гостевой вход «Запуск демо» - он и выдаёт токен.
      */
     private static final String[] PUBLIC_PATHS = {
-        "/actuator/health", "/actuator/health/**",
+        "/actuator/health", "/actuator/health/**", GuestSessionController.PATH,
         "/swagger-ui.html", "/swagger-ui/**", "/webjars/**",
         "/v3/api-docs", "/v3/api-docs/**", "/backend/v3/api-docs"
     };

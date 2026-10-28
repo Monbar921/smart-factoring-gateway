@@ -56,6 +56,7 @@ public abstract class AbstractSmartFactoringGatewayTest {
 
     static final AtomicReference<String> BACKEND_PATH = new AtomicReference<>();
     static final AtomicReference<String> BACKEND_AUTHORIZATION = new AtomicReference<>();
+    static final AtomicReference<String> GUEST_TOKEN_FORM = new AtomicReference<>();
 
     private static final RSAKey SIGNING_KEY = generateKey("smart-factoring-test");
     /** Чужой ключ: токен им подписан, но в JWKS его нет. */
@@ -64,6 +65,15 @@ public abstract class AbstractSmartFactoringGatewayTest {
     private static final DisposableServer BACKEND = HttpServer.create()
             .port(0)
             .handle((request, response) -> {
+                if (request.uri().equals("/token")) {
+                    // token endpoint Keycloak для гостевого входа: запоминаем форму, отвечаем токеном демо-пользователя
+                    return request.receive().aggregate().asString().flatMap(form -> {
+                        GUEST_TOKEN_FORM.set(form);
+                        return Mono.just(form);
+                    }).then(response.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                            .sendString(Mono.fromSupplier(() -> "{\"access_token\":\"" + tokenWithRoles("operator", "manager")
+                                    + "\",\"expires_in\":900,\"refresh_token\":\"secret-refresh\"}")).then());
+                }
                 if (request.uri().equals("/jwks")) {
                     return response.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                             .sendString(Mono.just(new JWKSet(SIGNING_KEY.toPublicJWK()).toString()));
@@ -87,6 +97,10 @@ public abstract class AbstractSmartFactoringGatewayTest {
         registry.add("BACKEND_URI", () -> "http://localhost:" + BACKEND.port());
         registry.add("KEYCLOAK_ISSUER_URI", () -> ISSUER);
         registry.add("KEYCLOAK_JWK_SET_URI", () -> "http://localhost:" + BACKEND.port() + "/jwks");
+        registry.add("GUEST_ENABLED", () -> "true");
+        registry.add("KEYCLOAK_TOKEN_URI", () -> "http://localhost:" + BACKEND.port() + "/token");
+        registry.add("GUEST_CLIENT_SECRET", () -> "guest-secret");
+        registry.add("GUEST_PASSWORD", () -> "demo-password");
     }
 
     @LocalServerPort

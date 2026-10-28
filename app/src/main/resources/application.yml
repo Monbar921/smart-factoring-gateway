@@ -27,6 +27,15 @@ spring:
 smart-factoring:
   gateway:
     backend-uri: ${BACKEND_URI}
+    # гостевой вход «Запуск демо»: gateway сам получает токен демо-пользователя (пароль в браузер не попадает)
+    guest:
+      enabled: ${GUEST_ENABLED:false}
+      # token endpoint realm стенда по сети smart-factoring-auth
+      token-uri: ${KEYCLOAK_TOKEN_URI:}
+      client-id: ${GUEST_CLIENT_ID:smart-factoring-guest}
+      client-secret: ${GUEST_CLIENT_SECRET:}
+      username: ${GUEST_USERNAME:demo}
+      password: ${GUEST_PASSWORD:}
     swagger:
       authorization-url: ${KEYCLOAK_ISSUER_URI}/protocol/openid-connect/auth
       token-url: ${KEYCLOAK_ISSUER_URI}/protocol/openid-connect/token
