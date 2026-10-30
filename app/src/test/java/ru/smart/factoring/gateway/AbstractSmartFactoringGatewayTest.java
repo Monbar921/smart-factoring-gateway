@@ -129,6 +129,16 @@ public abstract class AbstractSmartFactoringGatewayTest {
         return sign(SIGNING_KEY, claims(ISSUER, Instant.now().plusSeconds(300), List.of(roles)));
     }
 
+    /**
+     * Токен гостевого входа: выдан клиентом гостя (azp), у демо-пользователя в Keycloak - обе роли.
+     */
+    static String guestToken() {
+        final JWTClaimsSet claims = new JWTClaimsSet.Builder(claims(ISSUER, Instant.now().plusSeconds(300), List.of("operator", "manager")))
+                .claim("azp", "smart-factoring-guest")
+                .build();
+        return sign(SIGNING_KEY, claims);
+    }
+
     static String expiredToken() {
         return sign(SIGNING_KEY, claims(ISSUER, Instant.now().minusSeconds(300)));
     }

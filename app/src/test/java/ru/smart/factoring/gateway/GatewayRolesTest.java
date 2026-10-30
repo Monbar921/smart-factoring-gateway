@@ -59,8 +59,48 @@ class GatewayRolesTest extends AbstractSmartFactoringGatewayTest {
     }
 
     @Test
+    void guestOnlyViews() {
+        // П4-2: просмотр экрана процесса, CRM и истории
+        assertGuestAllowed("/api/backend/runs");
+        assertGuestAllowed("/api/backend/runs/7/funnel");
+        assertGuestAllowed("/api/backend/runs/defaults");
+        assertGuestAllowed("/api/backend/parameters");
+        assertGuestAllowed("/api/backend/managers/1/queue");
+        assertGuestAllowed("/api/backend/clients/3/card");
+        assertGuestAllowed("/api/backend/maintenance/whoami");
+        // П4-1, П4-2: всё, что меняет данные, запускает обработку или тратит запросы LLM, - 403, хотя роли в токене есть
+        assertGuestForbidden(HttpMethod.POST, "/api/backend/runs");
+        assertGuestForbidden(HttpMethod.POST, "/api/backend/manual-upload");
+        assertGuestForbidden(HttpMethod.DELETE, "/api/backend/manual-upload/data");
+        assertGuestForbidden(HttpMethod.POST, "/api/backend/offers/5/transfer");
+        assertGuestForbidden(HttpMethod.POST, "/api/backend/offers/5/reject");
+        assertGuestForbidden(HttpMethod.POST, "/api/backend/llm/chat/completions");
+    }
+
+    @Test
     void otherBackendPathsNeedOnlyLogin() {
         assertAllowed(HttpMethod.GET, "/api/backend/maintenance/whoami");
+    }
+
+    private void assertGuestAllowed(final String uri) {
+        BACKEND_PATH.set(null);
+        client.get().uri(uri)
+                .headers(headers -> headers.setBearerAuth(guestToken()))
+                .exchange()
+                .expectStatus().isOk();
+
+        assertThat(BACKEND_PATH.get()).isEqualTo(uri.replace("/api/backend/", "/internal/rest/"));
+    }
+
+    private void assertGuestForbidden(final HttpMethod method, final String uri) {
+        BACKEND_PATH.set(null);
+        client.method(method).uri(uri)
+                .headers(headers -> headers.setBearerAuth(guestToken()))
+                .exchange()
+                .expectStatus().isEqualTo(HttpStatus.FORBIDDEN)
+                .expectBody().jsonPath("$.message").isEqualTo("Гостю доступен только просмотр");
+
+        assertThat(BACKEND_PATH.get()).isNull();
     }
 
     private void assertAllowed(final HttpMethod method, final String uri, final String... roles) {
