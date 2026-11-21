@@ -34,7 +34,10 @@ import java.util.stream.Collectors;
  * Права - по ролям realm Keycloak (claim realm_access.roles):
  * <ul>
  *     <li>{@value #OPERATOR} - экран процесса: импорт данных ручной загрузки и запуск прогона;</li>
- *     <li>{@value #MANAGER} - эмулятор CRM: очередь, карточка клиента, решения по предложениям;</li>
+ *     <li>{@value #MANAGER} - эмулятор CRM: очередь, карточка клиента, решения по предложениям; чьи клиенты видны -
+ *     решает backend (НФР-9, Р-75);</li>
+ *     <li>{@value #SUPERVISOR} - руководитель: эмулятор CRM по всем менеджерам и прогоны - только просмотр, решения по
+ *     предложениям принимает менеджер;</li>
  *     <li>{@value #VIEWER} - гость «Запуск демо» (П4-1, П4-2): только просмотр - экран процесса, CRM, история;
  *     любой запрос, кроме GET, - 403, что бы ни показывал UI.</li>
  * </ul>
@@ -55,6 +58,7 @@ public class SecurityConfiguration {
     public static final String OPERATOR = "operator";
     public static final String MANAGER = "manager";
     public static final String VIEWER = "viewer";
+    public static final String SUPERVISOR = "supervisor";
 
     /**
      * Без токена: healthcheck docker, Swagger UI и спецификации (кнопка Authorize получает токен в самом Swagger UI),
@@ -77,8 +81,8 @@ public class SecurityConfiguration {
         return http
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(PUBLIC_PATHS).permitAll()
-                        .pathMatchers(HttpMethod.GET, RUN_VIEW_PATHS).hasAnyRole(OPERATOR, MANAGER, VIEWER)
-                        .pathMatchers(HttpMethod.GET, MANAGER_PATHS).hasAnyRole(MANAGER, VIEWER)
+                        .pathMatchers(HttpMethod.GET, RUN_VIEW_PATHS).hasAnyRole(OPERATOR, MANAGER, SUPERVISOR, VIEWER)
+                        .pathMatchers(HttpMethod.GET, MANAGER_PATHS).hasAnyRole(MANAGER, SUPERVISOR, VIEWER)
                         .pathMatchers(OPERATOR_PATHS).hasRole(OPERATOR)
                         .pathMatchers(MANAGER_PATHS).hasRole(MANAGER)
                         .pathMatchers(HttpMethod.GET).authenticated()

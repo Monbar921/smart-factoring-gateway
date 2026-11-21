@@ -7,11 +7,12 @@ import org.springframework.http.HttpStatus;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Права по ролям realm Keycloak: operator - экран процесса, manager - эмулятор CRM.
+ * Права по ролям realm Keycloak: operator - экран процесса, manager - эмулятор CRM, supervisor - просмотр CRM и прогонов.
  */
 class GatewayRolesTest extends AbstractSmartFactoringGatewayTest {
     private static final String OPERATOR = "operator";
     private static final String MANAGER = "manager";
+    private static final String SUPERVISOR = "supervisor";
 
     @Test
     void operatorStartsRunsAndUploadsData() {
@@ -44,6 +45,19 @@ class GatewayRolesTest extends AbstractSmartFactoringGatewayTest {
         assertAllowed(HttpMethod.GET, "/api/backend/runs/7/funnel", MANAGER);
         assertForbidden(HttpMethod.POST, "/api/backend/runs", MANAGER);
         assertForbidden(HttpMethod.POST, "/api/backend/manual-upload", MANAGER);
+    }
+
+    @Test
+    void supervisorViewsAllButDoesNotDecide() {
+        // Р-75: руководитель видит очереди и карточки всех менеджеров (какие - решает backend) и прогоны
+        assertAllowed(HttpMethod.GET, "/api/backend/managers", SUPERVISOR);
+        assertAllowed(HttpMethod.GET, "/api/backend/managers/1/queue", SUPERVISOR);
+        assertAllowed(HttpMethod.GET, "/api/backend/clients/3/card", SUPERVISOR);
+        assertAllowed(HttpMethod.GET, "/api/backend/runs/7/funnel", SUPERVISOR);
+        // решения по предложениям и запуск анализа - не его
+        assertForbidden(HttpMethod.POST, "/api/backend/offers/5/transfer", SUPERVISOR);
+        assertForbidden(HttpMethod.POST, "/api/backend/offers/5/reject", SUPERVISOR);
+        assertForbidden(HttpMethod.POST, "/api/backend/runs", SUPERVISOR);
     }
 
     @Test
