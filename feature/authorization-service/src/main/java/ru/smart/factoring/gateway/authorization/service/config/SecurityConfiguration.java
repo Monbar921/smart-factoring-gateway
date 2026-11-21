@@ -41,6 +41,9 @@ import java.util.stream.Collectors;
  *     <li>{@value #VIEWER} - гость «Запуск демо» (П4-1, П4-2): только просмотр - экран процесса, CRM, история;
  *     любой запрос, кроме GET, - 403, что бы ни показывал UI.</li>
  * </ul>
+ * LLM backend ({@value #LLM_PATH}) снаружи закрыта всем (п. 1.1а-22): пользователь не работает с моделью напрямую,
+ * в LLM уходят только данные, которые собирает сам backend; сервис моделей вызывает backend по сети стенда, мимо gateway.
+ * <p>
  * Смотреть прогоны и параметры могут все три роли. Остальные пути backend: GET - любому вошедшему пользователю,
  * изменение - любому, кроме гостя.
  * <p>
@@ -71,6 +74,7 @@ public class SecurityConfiguration {
     };
 
     private static final String BACKEND = "/api/backend";
+    static final String LLM_PATH = BACKEND + "/llm/**";
     private static final String[] RUN_VIEW_PATHS = {BACKEND + "/runs", BACKEND + "/runs/**", BACKEND + "/parameters"};
     private static final String[] OPERATOR_PATHS = {BACKEND + "/runs", BACKEND + "/runs/**", BACKEND + "/manual-upload/**"};
     private static final String[] MANAGER_PATHS = {BACKEND + "/managers/**", BACKEND + "/clients/**", BACKEND + "/offers/**"};
@@ -81,6 +85,7 @@ public class SecurityConfiguration {
         return http
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(PUBLIC_PATHS).permitAll()
+                        .pathMatchers(LLM_PATH).denyAll()
                         .pathMatchers(HttpMethod.GET, RUN_VIEW_PATHS).hasAnyRole(OPERATOR, MANAGER, SUPERVISOR, VIEWER)
                         .pathMatchers(HttpMethod.GET, MANAGER_PATHS).hasAnyRole(MANAGER, SUPERVISOR, VIEWER)
                         .pathMatchers(OPERATOR_PATHS).hasRole(OPERATOR)

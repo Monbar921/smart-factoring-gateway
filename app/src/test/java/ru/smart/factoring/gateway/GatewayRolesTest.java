@@ -92,6 +92,16 @@ class GatewayRolesTest extends AbstractSmartFactoringGatewayTest {
     }
 
     @Test
+    void llmIsClosedForEveryone() {
+        // п. 1.1а-22: пользователь не работает с LLM напрямую - ни одна роль, ни гость
+        for (final String[] roles : new String[][] {{}, {OPERATOR}, {MANAGER}, {SUPERVISOR}, {OPERATOR, MANAGER, SUPERVISOR}}) {
+            assertForbidden(HttpMethod.POST, "/api/backend/llm/chat/completions", roles);
+            assertForbidden(HttpMethod.GET, "/api/backend/llm/models", roles);
+        }
+        assertGuestForbidden(HttpMethod.GET, "/api/backend/llm/models");
+    }
+
+    @Test
     void otherBackendPathsNeedOnlyLogin() {
         assertAllowed(HttpMethod.GET, "/api/backend/maintenance/whoami");
     }
