@@ -13,9 +13,12 @@ import java.net.SocketAddress;
  * Access log на уровне Netty: пишется после отправки ответа для любого запроса, в том числе 404 и ошибок проксирования,
  * поэтому статус в логе - тот, что реально получил клиент. Логгер - reactor.netty.http.server.AccessLog.
  * <p>
- * Формат: {@code ip=203.0.113.7 xff=- "GET /api/deals?x=1 HTTP/1.1" 200 512b 12ms}.
- * xff - заголовок X-Forwarded-For как есть: клиент может подставить в него что угодно,
+ * Формат: {@code ip=203.0.113.0 xff=- "GET /api/deals?x=1 HTTP/1.1" 200 512b 12ms}.
+ * xff - адреса из заголовка X-Forwarded-For: клиент может подставить в него что угодно,
  * поэтому реальный адрес соединения пишется отдельно в ip.
+ * <p>
+ * Адреса в ip и xff маскируются ({@link IpMask}): за Caddy и nginx UI в xff - IP посетителя, а это персональные
+ * данные; для разбора сбоев достаточно сети.
  */
 @Configuration
 public class AccessLogConfiguration {
@@ -29,7 +32,7 @@ public class AccessLogConfiguration {
                 args -> !String.valueOf(args.uri()).startsWith(HEALTH_URI),
                 args -> AccessLog.create("ip={} xff={} \"{} {} {}\" {} {}b {}ms",
                         clientIp(args.remoteAddress()),
-                        valueOrDash(args.requestHeader("X-Forwarded-For")),
+                        forwardedFor(args.requestHeader("X-Forwarded-For")),
                         args.method(),
                         args.uri(),
                         args.protocol(),
@@ -40,12 +43,12 @@ public class AccessLogConfiguration {
 
     private static String clientIp(final SocketAddress address) {
         if (address instanceof InetSocketAddress inet) {
-            return inet.getAddress() != null ? inet.getAddress().getHostAddress() : inet.getHostString();
+            return inet.getAddress() != null ? IpMask.mask(inet.getAddress()) : IpMask.mask(inet.getHostString());
         }
-        return address != null ? address.toString() : NO_VALUE;
+        return address != null ? IpMask.UNKNOWN : NO_VALUE;
     }
 
-    private static Object valueOrDash(final CharSequence value) {
-        return value != null && !value.isEmpty() ? value : NO_VALUE;
+    private static String forwardedFor(final CharSequence value) {
+        return value != null && !value.isEmpty() ? IpMask.maskList(value) : NO_VALUE;
     }
 }

@@ -61,13 +61,14 @@ class SmartFactoringGatewayTest extends AbstractSmartFactoringGatewayTest {
     void requestIsWrittenToAccessLog(final CapturedOutput output) {
         client.post().uri("/api/backend/deals?draft=true")
                 .headers(headers -> headers.setBearerAuth(token()))
-                .header("X-Forwarded-For", "203.0.113.7")
+                .header("X-Forwarded-For", "203.0.113.7, 172.18.0.5")
                 .exchange()
                 .expectStatus().isOk();
 
-        // access log пишется после отправки ответа, клиент может получить его раньше
+        // access log пишется после отправки ответа, клиент может получить его раньше; адреса - без последнего октета
         await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> assertThat(output.getOut())
-                .containsPattern("ip=127\\.0\\.0\\.1 xff=203\\.0\\.113\\.7 \"POST /api/backend/deals\\?draft=true HTTP/1\\.1\" 200 \\d+b \\d+ms"));
+                .containsPattern("ip=127\\.0\\.0\\.0 xff=203\\.0\\.113\\.0,172\\.18\\.0\\.0 \"POST /api/backend/deals\\?draft=true HTTP/1\\.1\" 200 \\d+b \\d+ms"));
+        assertThat(output.getOut()).doesNotContain("203.0.113.7");
     }
 
     @Test
